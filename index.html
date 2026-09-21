@@ -174,7 +174,7 @@ h1{font-size:clamp(44px,7vw,78px);line-height:.98;letter-spacing:-.055em;max-wid
 .bar i{display:block;height:100%;border-radius:999px;background:var(--blue2)}
 .alert{padding:12px;border-radius:14px;background:var(--soft);margin-top:10px;font-size:12px;line-height:1.5}
 .bottomnav{
-  position:sticky;bottom:0;z-index:45;display:grid;grid-template-columns:repeat(6,1fr);
+  position:sticky;bottom:0;z-index:45;display:grid;grid-template-columns:repeat(7,1fr);
   border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(14px);padding:7px 9px 10px
 }
 .navbtn{padding:9px 4px;background:transparent;color:#7b8494;font-size:10px;font-weight:900}
@@ -187,7 +187,7 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
 .modal-card h3{margin:0 0 9px;font-size:25px}
 .modal-card p{color:var(--muted);line-height:1.6;font-size:13px}
 @media(max-width:900px){
-  .hero-grid,.admin-grid,.profile-grid{grid-template-columns:1fr}
+  .hero-grid,.admin-grid,.profile-grid,.community-layout{grid-template-columns:1fr}
   .cards{grid-template-columns:repeat(2,1fr)}
   .fields{grid-template-columns:1fr 1fr}
   .stats{grid-template-columns:repeat(2,1fr)}
@@ -198,10 +198,33 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
   .route-card,.cards,.opps,.fields{grid-template-columns:1fr}
   .route+.route{border-left:0;border-top:1px solid var(--line)}
   .match{grid-template-columns:1fr}.match-right{text-align:left}
-  .bottomnav{grid-template-columns:repeat(3,1fr)}
+  .bottomnav{grid-template-columns:repeat(4,1fr)}
   .stats{grid-template-columns:1fr 1fr}
   .panel-title h2{font-size:35px}
 }
+
+.community-layout{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}
+.community-feed{display:grid;gap:13px}
+.community-post{background:#fff;border:1px solid var(--line);border-radius:19px;padding:18px;box-shadow:0 7px 24px rgba(16,31,75,.05)}
+.community-post-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.community-post h3{margin:5px 0 6px;font-size:18px}
+.community-post p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.community-label{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:999px;background:#f2f4f7;color:#475467;font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.05em}
+.community-label.verified{background:var(--green-soft);color:var(--green)}
+.community-label.submitted{background:var(--gold-soft);color:var(--gold)}
+.community-side{display:grid;gap:14px;align-content:start}
+.community-side .formbox{max-width:none}
+.submit-card{padding:18px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.submit-card h3{margin:0 0 7px}
+.submit-card p{font-size:12px;color:var(--muted);line-height:1.55}
+.field textarea{min-height:116px;resize:vertical}
+.notice{padding:12px 14px;border-radius:14px;background:var(--soft);color:#334e97;font-size:11px;line-height:1.55;margin-top:14px}
+.email-destination{font-weight:900;color:var(--blue)}
+.moderation-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.moderation-row:last-child{border-bottom:0}
+.moderation-row b{display:block;font-size:12px}
+.moderation-row span{font-size:11px;color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -300,7 +323,7 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
         <aside>
           <div class="info-block"><h4>Service area</h4><p id="profileArea"></p></div>
           <div class="info-block"><h4>Ways to connect</h4><div class="need-list" id="profileNeeds"></div></div>
-          <div class="card-actions"><button class="btn" onclick="fakeAction('In a live version, this would hand the user off to the organization or its application page.')">Get help</button><button class="btn secondary" onclick="go('offer')">Offer help</button></div>
+          <div class="card-actions"><button class="btn" onclick="fakeAction('In a live version, this would hand the user off to the organization or its application page.')">Get help</button><button class="btn secondary" onclick="go('offer')">Offer help</button><button class="btn secondary" onclick="prepProfileSubmission()">Claim / update profile</button></div>
         </aside>
       </div>
     </div>
@@ -308,18 +331,23 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
 </section>
 
 <section id="offer" class="page panel">
-  <div class="panel-title"><span class="kicker"><span class="dot"></span> I want to help</span><h2>Tell Brickers what you can offer.</h2><p>The support side can match businesses, volunteers, professionals, venues, donors, and community partners to needs submitted or maintained by participating nonprofits.</p></div>
+  <div class="panel-title"><span class="kicker"><span class="dot"></span> I want to help</span><h2>Tell Brickers what you can offer.</h2><p>Businesses, volunteers, professionals, venues, donors, and community partners can submit what they have available. For this prototype, submissions are routed directly to the Brickers team for review and matching.</p></div>
   <div class="formbox">
     <p class="label">I can provide...</p>
     <div class="chips" id="offerChips">
       <button class="chip" onclick="toggleChip(this)">Volunteer time</button><button class="chip" onclick="toggleChip(this)">Professional skills</button><button class="chip" onclick="toggleChip(this)">Supplies</button><button class="chip" onclick="toggleChip(this)">Transportation</button><button class="chip" onclick="toggleChip(this)">Event space</button><button class="chip" onclick="toggleChip(this)">Media exposure</button><button class="chip" onclick="toggleChip(this)">Mentorship</button><button class="chip" onclick="toggleChip(this)">Sponsorship</button>
     </div>
     <div class="fields">
-      <div class="field"><label>I am a...</label><select><option>Individual</option><option>Business</option><option>Nonprofit</option><option>Professional</option><option>Student</option><option>Community organization</option></select></div>
-      <div class="field"><label>City or ZIP</label><input placeholder="Your service area"></div>
-      <div class="field"><label>Availability</label><select><option>Local</option><option>Virtual</option><option>Statewide</option><option>Nationwide</option></select></div>
+      <div class="field"><label>Your name / organization</label><input id="offerName" placeholder="Name or organization"></div>
+      <div class="field"><label>I am a...</label><select id="offerRole"><option>Individual</option><option>Business</option><option>Nonprofit</option><option>Professional</option><option>Student</option><option>Community organization</option></select></div>
+      <div class="field"><label>City or ZIP</label><input id="offerLocation" placeholder="Your service area"></div>
+      <div class="field"><label>Availability</label><select id="offerAvailability"><option>Local</option><option>Virtual</option><option>Statewide</option><option>Nationwide</option></select></div>
+      <div class="field"><label>Your email</label><input id="offerEmail" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>Phone (optional)</label><input id="offerPhone" placeholder="Best number"></div>
     </div>
-    <div class="submit"><span class="micro">A live version could route this into a Brickers review queue before contact details are shared.</span><button class="btn" onclick="fakeAction('Demo match created: Brickers could compare this offer against current nonprofit needs and surface the strongest connections for review.')">Find organizations</button></div>
+    <div class="field" style="margin-top:14px"><label>Anything Brickers should know?</label><textarea id="offerNotes" placeholder="Availability, quantities, experience, timing, restrictions, etc."></textarea></div>
+    <div class="notice">Prototype workflow: Submit opens a pre-filled email to <span class="email-destination">crystal.h@brickersfoundation.org</span>. The production version can submit in the background and place it into the admin review queue.</div>
+    <div class="submit"><span class="micro">Brickers can review the offer before sharing any contact information with another organization.</span><button class="btn" onclick="submitOffer()">Submit my offer</button></div>
   </div>
 </section>
 
@@ -329,8 +357,83 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
   <div class="cards" id="discoverCards"></div>
 </section>
 
+
+<section id="community" class="page panel">
+  <div class="panel-title"><span class="kicker"><span class="dot"></span> Community Hub</span><h2>What’s happening in the community?</h2><p>A moderated feed for local resources, events, needs, opportunities, organization updates, and community stories. Posts can be tagged by location so future matching can surface them to people nearby.</p></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="filterCommunity('all',this)">For You</button>
+    <button class="tab" onclick="filterCommunity('resource',this)">Resources</button>
+    <button class="tab" onclick="filterCommunity('event',this)">Events</button>
+    <button class="tab" onclick="filterCommunity('need',this)">Needs</button>
+    <button class="tab" onclick="filterCommunity('story',this)">Stories</button>
+  </div>
+
+  <div class="community-layout">
+    <div class="community-feed" id="communityFeed">
+      <article class="community-post" data-community="need">
+        <div class="community-post-head"><div><span class="community-label verified">✓ Brickers Verified</span><h3>Volunteer transportation support needed</h3></div><span class="micro">Virginia</span></div>
+        <p>A community organization is looking for volunteers who may be able to help people reach appointments, services, and community resources.</p>
+        <div class="meta"><span>Volunteer</span><span>Transportation</span><span>Community support</span></div>
+        <div class="card-actions"><button class="tiny" onclick="go('offer')">I may be able to help</button></div>
+      </article>
+
+      <article class="community-post" data-community="event">
+        <div class="community-post-head"><div><span class="community-label verified">✓ Brickers Verified</span><h3>Brickers Fest</h3></div><span class="micro">Northern Virginia</span></div>
+        <p>Planned family-friendly community event bringing nonprofits, families, businesses, volunteers, and local resources together.</p>
+        <div class="meta"><span>Event</span><span>Family</span><span>Community</span></div>
+      </article>
+
+      <article class="community-post" data-community="resource">
+        <div class="community-post-head"><div><span class="community-label submitted">Community Submitted</span><h3>Sample: Free community workshop</h3></div><span class="micro">Local example</span></div>
+        <p>This sample shows how a community-submitted resource can appear after Brickers reviews and publishes it.</p>
+        <div class="meta"><span>Free</span><span>Workshop</span><span>Submitted</span></div>
+      </article>
+
+      <article class="community-post" data-community="story">
+        <div class="community-post-head"><div><span class="community-label submitted">Community Submitted</span><h3>Sample: A community win worth sharing</h3></div><span class="micro">Story</span></div>
+        <p>Residents, volunteers, and organizations can submit stories that may become community posts, social content, or future Brickers features.</p>
+        <div class="meta"><span>Good news</span><span>Impact</span><span>Story</span></div>
+      </article>
+    </div>
+
+    <aside class="community-side">
+      <div class="submit-card">
+        <h3>Share something with Brickers</h3>
+        <p>Submit a resource, event, volunteer need, opportunity, organization update, or community story. Brickers reviews submissions before publishing them.</p>
+        <button class="btn" style="width:100%" onclick="document.getElementById('communityForm').scrollIntoView({behavior:'smooth'})">Create a submission</button>
+      </div>
+
+      <div class="formbox" id="communityForm">
+        <p class="label">Community submission</p>
+        <div class="field"><label>Submission type</label>
+          <select id="communityType">
+            <option>Resource</option>
+            <option>Event</option>
+            <option>Volunteer / donation need</option>
+            <option>Opportunity</option>
+            <option>Organization update</option>
+            <option>Community story</option>
+            <option>Nonprofit profile request / correction</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:12px"><label>Title</label><input id="communityTitle" placeholder="What should we call this?"></div>
+        <div class="field" style="margin-top:12px"><label>Name / organization</label><input id="communityOrg" placeholder="Your name or organization"></div>
+        <div class="fields" style="grid-template-columns:1fr 1fr;margin-top:12px">
+          <div class="field"><label>City / ZIP / service area</label><input id="communityLocation" placeholder="Where is this relevant?"></div>
+          <div class="field"><label>Contact email</label><input id="communityEmail" type="email" placeholder="you@example.com"></div>
+        </div>
+        <div class="field" style="margin-top:12px"><label>Link (optional)</label><input id="communityLink" placeholder="Website, registration page, social post, etc."></div>
+        <div class="field" style="margin-top:12px"><label>Details</label><textarea id="communityDetails" placeholder="Tell Brickers what people need to know, who this serves, dates/deadlines, costs, eligibility, current needs, etc."></textarea></div>
+        <div class="notice">All prototype submissions are addressed to <span class="email-destination">crystal.h@brickersfoundation.org</span> for moderation.</div>
+        <button class="btn" style="width:100%;margin-top:14px" onclick="submitCommunity()">Submit to Brickers</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
 <section id="opportunities" class="page panel">
-  <div class="panel-title"><span class="kicker"><span class="dot"></span> Opportunity Hub</span><h2>Find a reason to come back.</h2><p>Scholarships, community events, volunteer openings, partnership opportunities, grants, workshops, and career resources can live in one continually updated feed.</p></div>
+  <div class="panel-title"><span class="kicker"><span class="dot"></span> Opportunity Hub</span><h2>Find a reason to come back.</h2><p>Scholarships, community events, volunteer openings, partnership opportunities, grants, workshops, and career resources can live in one continually updated feed.</p><div class="hero-actions"><button class="btn" onclick="prepCommunitySubmission('Opportunity')">Submit an opportunity</button></div></div>
   <div class="tabs"><button class="tab active" onclick="filterOpp('all',this)">All</button><button class="tab" onclick="filterOpp('event',this)">Events</button><button class="tab" onclick="filterOpp('volunteer',this)">Volunteer</button><button class="tab" onclick="filterOpp('scholarship',this)">Scholarships</button><button class="tab" onclick="filterOpp('partner',this)">Partnerships</button></div>
   <div class="opps">
     <article class="opp" data-type="event"><div class="opp-type">Community Event</div><h3>Brickers Fest</h3><p>A free, family-friendly community festival planned for Northern Virginia, bringing nonprofits, businesses, volunteers, families, and local resources together.</p><div class="opp-bottom"><span class="status plan">PLANNED • DATE TBD</span><button class="tiny" onclick="fakeAction('This could open the Brickers Fest event page and registration once details are finalized.')">Details</button></div></article>
@@ -372,6 +475,14 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
         </tbody></table>
       </div>
       <div class="admin-card"><h3>Platform health</h3><div class="alert">✓ 4 profiles need service-area verification</div><div class="alert">✓ 7 opportunity listings expire within 30 days</div><div class="alert">✓ 3 unmatched needs could use new partner outreach</div></div>
+
+      <div class="admin-card"><h3>Community moderation inbox</h3>
+        <div class="moderation-row"><div><b>Resource submission</b><span>Awaiting Brickers review</span></div><span class="status plan">EMAIL INTAKE</span></div>
+        <div class="moderation-row"><div><b>Volunteer need</b><span>Awaiting location verification</span></div><span class="status plan">EMAIL INTAKE</span></div>
+        <div class="moderation-row"><div><b>Organization profile update</b><span>Awaiting verification</span></div><span class="status plan">EMAIL INTAKE</span></div>
+        <div class="alert">Prototype routing destination: <b>crystal.h@brickersfoundation.org</b>. A production backend can turn these emails into actual queue records automatically.</div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -382,11 +493,12 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
   <button class="navbtn" data-page="find" onclick="go('find')">⌕ Find Help</button>
   <button class="navbtn" data-page="offer" onclick="go('offer')">＋ Offer Help</button>
   <button class="navbtn" data-page="discover" onclick="go('discover')">◫ Discover</button>
+  <button class="navbtn" data-page="community" onclick="go('community')">☷ Community</button>
   <button class="navbtn" data-page="opportunities" onclick="go('opportunities')">★ Opportunities</button>
   <button class="navbtn" data-page="admin" onclick="go('admin')">▦ Admin</button>
 </nav>
 
-<footer><b>Brickers Connect — Product Prototype</b><p>This interactive concept demonstrates a possible connection platform for The Brickers Foundation. Organization descriptions and geography are based on public Brickers Foundation features where available. Match counts, analytics, submissions, and dashboard metrics are illustrative demo data.</p></footer>
+<footer><b>Brickers Connect — Product Prototype</b><p>This interactive concept demonstrates a possible connection platform for The Brickers Foundation. Organization descriptions and geography are based on public Brickers Foundation features where available. Match counts, analytics, and dashboard metrics are illustrative demo data. Prototype submission buttons prepare an email to crystal.h@brickersfoundation.org for Brickers review.</p></footer>
 </div>
 
 <div class="modal" id="modal"><div class="modal-card"><h3 id="modalTitle">Prototype action</h3><p id="modalText"></p><button class="btn" onclick="closeModal()">Got it</button></div></div>
@@ -554,6 +666,91 @@ function filterOpp(type,el){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));el.classList.add("active");
   document.querySelectorAll(".opp").forEach(o=>o.style.display=(type==="all"||o.dataset.type===type)?"block":"none");
 }
+
+const SUBMISSION_EMAIL="crystal.h@brickersfoundation.org";
+
+function selectedChipText(containerId){
+  return [...document.querySelectorAll(`#${containerId} .chip.selected`)].map(x=>x.textContent.trim()).join(", ") || "None selected";
+}
+function cleanValue(id){
+  const el=document.getElementById(id);
+  return el ? (el.value||"").trim() : "";
+}
+function sendSubmissionEmail(type, rows){
+  const subject=`Brickers Connect Submission: ${type}`;
+  const body=[
+    "BRICKERS CONNECT COMMUNITY SUBMISSION",
+    "",
+    `Submission type: ${type}`,
+    `Submitted from: Brickers Connect prototype`,
+    `Date: ${new Date().toLocaleString()}`,
+    "",
+    ...rows.map(([label,value])=>`${label}: ${value || "Not provided"}`),
+    "",
+    "Please review this submission before publishing, matching, or sharing contact information."
+  ].join("\n");
+
+  const href=`mailto:${SUBMISSION_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=href;
+  setTimeout(()=>{
+    document.getElementById("modalTitle").textContent="Submission prepared";
+    document.getElementById("modalText").textContent=`Your email app should open with a pre-filled message to ${SUBMISSION_EMAIL}. Send that email to place the submission in the Brickers review inbox.`;
+    document.getElementById("modal").classList.add("show");
+  },500);
+}
+function submitOffer(){
+  sendSubmissionEmail("Offer Help",[
+    ["Name / organization",cleanValue("offerName")],
+    ["Role",cleanValue("offerRole")],
+    ["What I can provide",selectedChipText("offerChips")],
+    ["Location / service area",cleanValue("offerLocation")],
+    ["Availability",cleanValue("offerAvailability")],
+    ["Email",cleanValue("offerEmail")],
+    ["Phone",cleanValue("offerPhone")],
+    ["Additional details",cleanValue("offerNotes")]
+  ]);
+}
+function submitCommunity(){
+  const type=cleanValue("communityType") || "Community submission";
+  sendSubmissionEmail(type,[
+    ["Title",cleanValue("communityTitle")],
+    ["Name / organization",cleanValue("communityOrg")],
+    ["City / ZIP / service area",cleanValue("communityLocation")],
+    ["Contact email",cleanValue("communityEmail")],
+    ["Link",cleanValue("communityLink")],
+    ["Details",cleanValue("communityDetails")]
+  ]);
+}
+function prepCommunitySubmission(type){
+  go("community");
+  setTimeout(()=>{
+    const select=document.getElementById("communityType");
+    if(select){
+      const options=[...select.options];
+      const match=options.find(o=>o.text.toLowerCase().includes(type.toLowerCase()));
+      if(match) select.value=match.value;
+    }
+    document.getElementById("communityForm").scrollIntoView({behavior:"smooth"});
+  },250);
+}
+function prepProfileSubmission(){
+  const org=document.getElementById("profileName").textContent || "Organization";
+  go("community");
+  setTimeout(()=>{
+    document.getElementById("communityType").value="Nonprofit profile request / correction";
+    document.getElementById("communityTitle").value=`Profile request: ${org}`;
+    document.getElementById("communityOrg").value=org;
+    document.getElementById("communityForm").scrollIntoView({behavior:"smooth"});
+  },250);
+}
+function filterCommunity(type,el){
+  document.querySelectorAll("#community .tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".community-post").forEach(p=>{
+    p.style.display=(type==="all"||p.dataset.community===type)?"block":"none";
+  });
+}
+
 function fakeAction(text){
   document.getElementById("modalText").textContent=text;
   document.getElementById("modal").classList.add("show");
