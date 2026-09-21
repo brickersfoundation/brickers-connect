@@ -18,7 +18,7 @@ function validEmail(value) {
 
 function checkAdmin(request, env) {
   const key = request.headers.get("X-Admin-Key");
-  return env.ADMIN_TOKEN && key === env.ADMIN_TOKEN;
+  return Boolean(env.ADMIN_TOKEN) && key === env.ADMIN_TOKEN;
 }
 
 async function getPosts(env) {
@@ -85,8 +85,8 @@ async function createPost(request, env) {
     }
 
     const bytes = new Uint8Array(await image.arrayBuffer());
-
     let binary = "";
+
     for (let i = 0; i < bytes.length; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
@@ -156,7 +156,6 @@ async function updatePost(request, env, id) {
     await env.DB.prepare(
       "UPDATE community_posts SET verified = 1 WHERE id = ?"
     ).bind(id).run();
-
     return json({ ok: true });
   }
 
@@ -164,7 +163,6 @@ async function updatePost(request, env, id) {
     await env.DB.prepare(
       "UPDATE community_posts SET verified = 0 WHERE id = ?"
     ).bind(id).run();
-
     return json({ ok: true });
   }
 
@@ -172,7 +170,6 @@ async function updatePost(request, env, id) {
     await env.DB.prepare(
       "UPDATE community_posts SET featured = 1 WHERE id = ?"
     ).bind(id).run();
-
     return json({ ok: true });
   }
 
@@ -180,7 +177,6 @@ async function updatePost(request, env, id) {
     await env.DB.prepare(
       "UPDATE community_posts SET featured = 0 WHERE id = ?"
     ).bind(id).run();
-
     return json({ ok: true });
   }
 
@@ -206,7 +202,8 @@ export default {
     if (url.pathname === "/api/health") {
       return json({
         ok: true,
-        database: Boolean(env.DB)
+        database: Boolean(env.DB),
+        adminConfigured: Boolean(env.ADMIN_TOKEN)
       });
     }
 
@@ -218,6 +215,13 @@ export default {
       if (request.method === "POST") {
         return createPost(request, env);
       }
+    }
+
+    if (url.pathname === "/api/admin/check" && request.method === "GET") {
+      if (!checkAdmin(request, env)) {
+        return json({ error: "Unauthorized." }, 401);
+      }
+      return json({ ok: true });
     }
 
     if (url.pathname === "/api/admin/posts" && request.method === "GET") {
