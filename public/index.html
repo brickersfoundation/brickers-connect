@@ -260,13 +260,34 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
 .danger{background:#b42318!important;color:#fff!important}
 .community-loading{padding:15px;border:1px dashed var(--line);border-radius:15px;color:var(--muted);font-size:12px;background:#fff}
 
+
+.admin-gate-backdrop{
+  position:fixed;inset:0;z-index:120;background:rgba(16,31,75,.62);
+  display:none;align-items:center;justify-content:center;padding:20px
+}
+.admin-gate-backdrop.show{display:flex}
+.admin-gate-card{
+  width:min(420px,100%);background:#fff;border-radius:22px;padding:24px;
+  box-shadow:0 35px 90px rgba(0,0,0,.28);border:1px solid var(--line)
+}
+.admin-gate-card h3{margin:0 0 8px;font-size:26px;letter-spacing:-.03em}
+.admin-gate-card p{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.55}
+.admin-code-input{
+  width:100%;padding:14px 15px;border:1px solid var(--line);border-radius:13px;
+  font-size:22px;letter-spacing:.18em;text-align:center;outline:none
+}
+.admin-code-input:focus{border-color:#9db4ff;box-shadow:0 0 0 4px rgba(45,102,255,.08)}
+.admin-gate-actions{display:flex;gap:9px;margin-top:14px}
+.admin-gate-error{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff0f0;color:#b42318;font-size:12px}
+.admin-gate-error.show{display:block}
+
 </style>
 </head>
 <body>
 <div class="shell">
 <header>
   <div class="brand"><div class="logo">B</div><div>Brickers Connect<small>The Brickers Foundation</small></div></div>
-  <div class="head-actions"><span class="pill">PRODUCT PROTOTYPE</span><button class="btn secondary" onclick="go('admin')">Admin demo</button></div>
+  <div class="head-actions"><span class="pill">PRODUCT PROTOTYPE</span><button class="btn secondary" onclick="openAdminGate()">Admin demo</button></div>
 </header>
 
 <main>
@@ -548,7 +569,7 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
       <div class="admin-card"><h3>Platform health</h3><div class="alert">✓ 4 profiles need service-area verification</div><div class="alert">✓ 7 opportunity listings expire within 30 days</div><div class="alert">✓ 3 unmatched needs could use new partner outreach</div></div>
       <div class="admin-card">
         <h3>Community Blog Admin</h3>
-        <p class="micro" style="margin-bottom:12px">Enter the Brickers admin token to view private submitter details and manage live posts.</p>
+        <p class="micro" style="margin-bottom:12px">Admin access is code-protected. The same session code unlocks post management.</p>
         <div class="admin-login">
           <input id="adminToken" type="password" placeholder="Admin token">
           <button class="tiny" onclick="loadAdminPosts()">Load posts</button>
@@ -571,10 +592,24 @@ footer p{max-width:720px;color:#cbd5f1;font-size:12px;line-height:1.6}
   <button class="navbtn" data-page="discover" onclick="go('discover')">◫ Discover</button>
   <button class="navbtn" data-page="community" onclick="go('community')">☷ Community Blog</button>
   <button class="navbtn" data-page="opportunities" onclick="go('opportunities')">★ Opportunities</button>
-  <button class="navbtn" data-page="admin" onclick="go('admin')">▦ Admin</button>
+  <button class="navbtn" data-page="admin" onclick="openAdminGate()">▦ Admin</button>
 </nav>
 
 <footer><b>Brickers Connect — Product Prototype</b><p>This interactive concept demonstrates a possible connection platform for The Brickers Foundation. Organization descriptions and geography are based on public Brickers Foundation features where available. Match counts, analytics, and dashboard metrics are illustrative demo data. Community Blog submissions publish to the live Brickers Connect database. Submitter contact email stays private and is visible only through the protected Admin view.</p></footer>
+</div>
+
+
+<div class="admin-gate-backdrop" id="adminGate">
+  <div class="admin-gate-card">
+    <h3>Admin Access</h3>
+    <p>This area is for Brickers Foundation admins only.</p>
+    <input class="admin-code-input" id="adminGateCode" type="password" inputmode="numeric" maxlength="12" placeholder="Enter code" onkeydown="if(event.key==='Enter')submitAdminGate()">
+    <div class="admin-gate-error" id="adminGateError">That code didn't work.</div>
+    <div class="admin-gate-actions">
+      <button class="btn" style="flex:1" onclick="submitAdminGate()">Enter Admin</button>
+      <button class="btn secondary" onclick="closeAdminGate()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="modal"><div class="modal-card"><h3 id="modalTitle">Prototype action</h3><p id="modalText"></p><button class="btn" onclick="closeModal()">Got it</button></div></div>
@@ -657,6 +692,10 @@ let selectedNeed="community";
 let lastPage="discover";
 
 function go(page){
+  if(page==="admin" && !sessionStorage.getItem("brickersAdminToken")){
+    openAdminGate();
+    return;
+  }
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(page).classList.add("active");
   document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
@@ -1049,6 +1088,52 @@ async function adminDelete(id){
   }catch(err){
     setFormStatus("adminStatus",err.message,"error");
   }
+}
+
+
+function openAdminGate(){
+  const saved=sessionStorage.getItem("brickersAdminToken");
+  if(saved){
+    verifyAdminToken(saved,true);
+    return;
+  }
+  document.getElementById("adminGateError").classList.remove("show");
+  document.getElementById("adminGateCode").value="";
+  document.getElementById("adminGate").classList.add("show");
+  setTimeout(()=>document.getElementById("adminGateCode").focus(),100);
+}
+function closeAdminGate(){
+  document.getElementById("adminGate").classList.remove("show");
+}
+async function verifyAdminToken(token,quiet=false){
+  try{
+    const response=await fetch("/api/admin/check",{
+      headers:{"X-Admin-Key":token}
+    });
+    if(!response.ok) throw new Error("bad");
+    sessionStorage.setItem("brickersAdminToken",token);
+    closeAdminGate();
+    go("admin");
+    const input=document.getElementById("adminToken");
+    if(input) input.value=token;
+    loadAdminPosts();
+  }catch(e){
+    sessionStorage.removeItem("brickersAdminToken");
+    if(quiet){
+      document.getElementById("adminGate").classList.add("show");
+    }
+    document.getElementById("adminGateError").classList.add("show");
+  }
+}
+async function submitAdminGate(){
+  const token=(document.getElementById("adminGateCode").value||"").trim();
+  if(!token){
+    document.getElementById("adminGateError").textContent="Enter the admin code.";
+    document.getElementById("adminGateError").classList.add("show");
+    return;
+  }
+  document.getElementById("adminGateError").textContent="That code didn't work.";
+  await verifyAdminToken(token,false);
 }
 
 function fakeAction(text){
